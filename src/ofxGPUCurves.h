@@ -38,6 +38,7 @@ public:
         updatePosition(i, v);
         updateOpacity(i, o);
     }
+    // TODO: ability to update curves
     
     size_t numIndices() { return m_indexCount; }
 

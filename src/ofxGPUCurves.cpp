@@ -1,8 +1,6 @@
 #include "ofxGPUCurves.h"
 #include <cassert>
 
-#define STRINGIFY(A) #A
-
 void ofxGPUCurves::setup(vector<ofVec3f> positions,
                          vector<float> opacities,
                          vector< vector<size_t> > curves,
@@ -12,7 +10,7 @@ void ofxGPUCurves::setup(vector<ofVec3f> positions,
         // generate a Catmull-Rom spline from line adjacency
         // adapted from OpenFrameworks
         string geomShader = ("#version 150 core\n"
-                             "#define RESOLUTION 10\n" // will rarely need more than 10
+                             "#define RESOLUTION 20\n" // will rarely need more than 10
                              "\n"
                              "in float pOpacity[];\n"
                              "layout(lines_adjacency) in;\n"
@@ -24,20 +22,27 @@ void ofxGPUCurves::setup(vector<ofVec3f> positions,
                              "    fOpacity = pOpacity[0];\n"
                              "    float x0 = gl_in[0].gl_Position.x;\n"
                              "    float y0 = gl_in[0].gl_Position.y;\n"
+                             "    float z0 = gl_in[0].gl_Position.z;\n"
+                             "\n"
                              "    float x1 = gl_in[1].gl_Position.x;\n"
                              "    float y1 = gl_in[1].gl_Position.y;\n"
+                             "    float z1 = gl_in[1].gl_Position.z;\n"
+                             "\n"
                              "    float x2 = gl_in[2].gl_Position.x;\n"
                              "    float y2 = gl_in[2].gl_Position.y;\n"
-                             "    float x3 = gl_in[3].gl_Position.x;\n"
-                             "    float y3 = gl_in[3].gl_Position.y;\n"
-                             "\n"
-                             "    float z1 = gl_in[1].gl_Position.z;\n"
                              "    float z2 = gl_in[2].gl_Position.z;\n"
                              "\n"
+                             "    float x3 = gl_in[3].gl_Position.x;\n"
+                             "    float y3 = gl_in[3].gl_Position.y;\n"
+                             "    float z3 = gl_in[3].gl_Position.z;\n"
+                             "\n"
+                             "    float w0 = gl_in[0].gl_Position.w;\n"
                              "    float w1 = gl_in[1].gl_Position.w;\n"
+                             "    float w2 = gl_in[2].gl_Position.w;\n"
+                             "    float w3 = gl_in[3].gl_Position.w;\n"
                              "\n"
                              "    float t,t2,t3;\n"
-                             "    float x,y,z;\n"
+                             "    float x,y,z,w;\n"
                              "\n"
                              "    for(int i=0; i<RESOLUTION; ++i) {\n"
                              "        float j = i;\n"
@@ -53,9 +58,17 @@ void ofxGPUCurves::setup(vector<ofVec3f> positions,
                              "                     ( -y0 + y2 ) * t +\n"
                              "                     ( 2.0f * y0 - 5.0f * y1 + 4 * y2 - y3 ) * t2 +\n"
                              "                     ( -y0 + 3.0f * y1 - 3.0f * y2 + y3 ) * t3 );\n"
-                             "        z = mix(z1,z2,t);\n"
+                             "        z = 0.5f * ( ( 2.0f * z1 ) +\n"
+                             "                     ( -z0 + z2 ) * t +\n"
+                             "                     ( 2.0f * z0 - 5.0f * z1 + 4 * z2 - z3 ) * t2 +\n"
+                             "                     ( -z0 + 3.0f * z1 - 3.0f * z2 + z3 ) * t3 );\n"
                              ""
-                             "        gl_Position = vec4(x,y,z,w1);\n"
+                             "        w = 0.5f * ( ( 2.0f * w1 ) +\n"
+                             "                     ( -w0 + w2 ) * t +\n"
+                             "                     ( 2.0f * w0 - 5.0f * w1 + 4 * w2 - w3 ) * t2 +\n"
+                             "                     ( -w0 + 3.0f * w1 - 3.0f * w2 + w3 ) * t3 );\n"
+                             ""
+                             "        gl_Position = vec4(x,y,z,w);\n"
                              "        EmitVertex();\n"
                              "    }\n"
                              "\n"
@@ -209,6 +222,7 @@ void ofxGPUCurves::reset(vector<ofVec3f> positions,
         vector<unsigned int> indices;
         for(size_t i=0; i<curves.size(); ++i) {
             vector<size_t> &conn = curves[i];
+            // printf("connection %d\n", conn.size());
             if(conn.empty()) continue;
 
             // pack beginning and end of `conn` twice into `connIndices`
@@ -218,14 +232,39 @@ void ofxGPUCurves::reset(vector<ofVec3f> positions,
             connIndices.push_back(conn[0]);
             connIndices.insert(connIndices.begin() + 1, conn.begin(), conn.end());
             connIndices.push_back(conn[conn.size() - 1]);
+            /*
+            printf("connx: ");
+            for(size_t i = 0; i<connIndices.size(); ++i) 
+                printf("%lu ", connIndices[i]);
+            printf("\n");
+            */
             
             if(connIndices.size() < 4) continue;
+
+            // transform connIndices to be like GL lines adjacency
             for(size_t i=0; i+3<connIndices.size(); ++i) {
+                // if(i % 2 == 0) {
                 indices.push_back(connIndices[i]);
                 indices.push_back(connIndices[i+1]);
                 indices.push_back(connIndices[i+2]);
                 indices.push_back(connIndices[i+3]);
+                // }
+                // else {
+                /*
+                                    indices.push_back(connIndices[i+3]);
+                indices.push_back(connIndices[i+2]);
+                indices.push_back(connIndices[i+1]);
+                indices.push_back(connIndices[i+0]);
+                */
+                //  }
+                
             }
+            /*
+            printf("conn: ");
+            for(size_t i = 0; i<indices.size(); ++i)
+                printf("%lu ", indices[i]);
+            printf("\n");
+            */
         }
         
         m_curvesVbo.setIndexData(&indices[0], indices.size(), GL_STATIC_DRAW);

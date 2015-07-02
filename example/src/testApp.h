@@ -20,4 +20,9 @@ public:
     void gotMessage(ofMessage msg);
 
     ofxGPUCurves m_curves;
+    size_t m_mouseIdx;
+    ofEasyCam m_cam;
+
+    float m_w;
+    float m_h;
 };
