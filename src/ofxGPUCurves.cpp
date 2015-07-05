@@ -300,6 +300,7 @@ void ofxGPUCurves::endUpdates() {
 
 
 void ofxGPUCurves::draw() {
+    ofNoFill();
     m_curvesShader.begin();
     m_curvesVbo.drawElements(GL_LINES_ADJACENCY, m_indexCount);
     m_curvesShader.end();
@@ -307,13 +308,14 @@ void ofxGPUCurves::draw() {
 
 
 void ofxGPUCurves::drawVertices(float radius) {
+    ofFill();
     m_pointShader.begin();
     
     if(! m_customPointShader) {
         m_pointShader.setUniform1f("radius", radius);
-        m_pointShader.setUniform1f("aspectRatio", ofGetWidth() / (float)ofGetHeight());
+        m_pointShader.setUniform1f("aspectRatio", ofGetViewportWidth() / (float)ofGetViewportHeight());
     }
-    
+
     m_pointsVbo.draw(GL_POINTS, 0, m_positions.size());
 
     m_pointShader.end();
