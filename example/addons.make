@@ -1,1 +1,1 @@
-ofxGPUCurves
+ofxGpuCurves

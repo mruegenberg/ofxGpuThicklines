@@ -1,4 +1,4 @@
-ofxGPUCurves
+ofxGpuCurves
 ================
 
 This OpenFrameworks addon allows you to render thousands of Catmull-Rom splines in real-time. 

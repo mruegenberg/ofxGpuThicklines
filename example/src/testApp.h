@@ -1,7 +1,7 @@
 #pragma once
 
 #include "ofMain.h"
-#include "ofxGPUCurves.h"
+#include "ofxGpuCurves.h"
 
 class testApp : public ofBaseApp{
 public:
@@ -19,7 +19,7 @@ public:
     void dragEvent(ofDragInfo dragInfo);
     void gotMessage(ofMessage msg);
 
-    ofxGPUCurves m_curves;
+    ofxGpuCurves m_curves;
     size_t m_mouseIdx;
     ofEasyCam m_cam;
 

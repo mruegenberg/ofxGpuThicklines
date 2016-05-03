@@ -1,7 +1,7 @@
-#include "ofxGPUCurves.h"
+#include "ofxGpuCurves.h"
 #include <cassert>
 
-void ofxGPUCurves::setup(vector<ofVec3f> positions,
+void ofxGpuCurves::setup(vector<ofVec3f> positions,
                          vector<float> opacities,
                          vector< vector<size_t> > curves,
                          ofShader pointShader) {
@@ -116,7 +116,7 @@ void ofxGPUCurves::setup(vector<ofVec3f> positions,
     reset(positions, opacities, curves);
 }
 
-void ofxGPUCurves::setup(vector<ofVec3f> positions,
+void ofxGpuCurves::setup(vector<ofVec3f> positions,
                          vector<float> opacities,
                          vector< vector<size_t> > curves) {
     // points shader
@@ -206,7 +206,7 @@ void ofxGPUCurves::setup(vector<ofVec3f> positions,
     m_customPointShader = false;
 }
 
-void ofxGPUCurves::reset(vector<ofVec3f> positions,
+void ofxGpuCurves::reset(vector<ofVec3f> positions,
                          vector<float> opacities,
                          vector< vector<size_t> > curves) {
     assert(positions.size() == opacities.size());
@@ -283,12 +283,12 @@ void ofxGPUCurves::reset(vector<ofVec3f> positions,
 }
 
 
-void ofxGPUCurves::beginUpdates() {
+void ofxGpuCurves::beginUpdates() {
     ; // we do nothing. this method is, for now, only to provide a more logical API.
 }
 
 
-void ofxGPUCurves::endUpdates() {
+void ofxGpuCurves::endUpdates() {
     m_curvesVbo.updateVertexData(&m_positions[0], m_positions.size());
     m_curvesVbo.updateAttributeData(m_curvesShader.getAttributeLocation("opacity"),
                                     &m_opacities[0], m_opacities.size());
@@ -299,7 +299,7 @@ void ofxGPUCurves::endUpdates() {
 }
 
 
-void ofxGPUCurves::draw() {
+void ofxGpuCurves::draw() {
     ofNoFill();
     m_curvesShader.begin();
     m_curvesVbo.drawElements(GL_LINES_ADJACENCY, m_indexCount);
@@ -307,7 +307,7 @@ void ofxGPUCurves::draw() {
 }
 
 
-void ofxGPUCurves::drawVertices(float radius) {
+void ofxGpuCurves::drawVertices(float radius) {
     ofFill();
     m_pointShader.begin();
     

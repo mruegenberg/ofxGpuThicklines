@@ -3,11 +3,11 @@
 
 #include "ofMain.h"
 
-class ofxGPUCurves
+class ofxGpuCurves
 {
 public:
-    ofxGPUCurves() {  }
-    virtual ~ofxGPUCurves() { ; }
+    ofxGpuCurves() {  }
+    virtual ~ofxGpuCurves() { ; }
 
     /// `positions` and `opacities` should be vectors of equal length containing the data
     /// for each point.
