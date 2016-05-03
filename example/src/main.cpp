@@ -3,7 +3,8 @@
 
 //--------------------------------------------------------------
 int main(){
-    // set width, height, mode (OF_WINDOW or OF_FULLSCREEN)
-    ofSetupOpenGL(1024, 768, OF_WINDOW);
-    ofRunApp(new testApp()); // start the app
+    ofGLWindowSettings settings;
+    settings.setGLVersion(3,2); // higher versions are of course ok as well
+    ofCreateWindow(settings); 
+    ofRunApp(new testApp());
 }
