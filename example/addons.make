@@ -1,1 +1,1 @@
-ofxGpuCurves
+ofxGpuThicklines

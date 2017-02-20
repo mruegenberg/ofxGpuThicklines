@@ -3,22 +3,24 @@
 //--------------------------------------------------------------
 void testApp::setup(){
     ofEnableAntiAliasing();
+    ofEnableSmoothing();
+    ofSetVerticalSync(false);
     m_w = ofGetWidth();
     m_h = ofGetHeight();
     float t = ofGetElapsedTimef();
     
-    vector<ofVec3f> positions; vector<float> opacities;
+    vector<ofVec3f> positions; vector<ofVec4f> colors;
     const int c = 15;
     for(int i=0; i<c; ++i) {
         positions.push_back(ofVec3f(ofRandom(m_w), ofRandom(m_h), ofRandom(-150,150)));
-        opacities.push_back(ofNoise(i*0.01 + t * 0.3));
+        colors.push_back(ofVec4f(1.0,1.0,1.0,ofNoise(i*0.01 + t * 0.3)));
     }
     vector< vector<size_t> > curves;
 
     // up to 20000 works fine at 60 FPS on my GTX680
     // after that we get fewer FPS regardless of curve resolution
     // which suggests that performance is bound by fill rate.
-    for(int i=0; i<20000; ++i) { 
+    for(int i=0; i<500; ++i) { 
         vector<size_t> curve;
         int j = ofRandom(3,7);
         for(int k=0; k<j; ++k) {
@@ -28,7 +30,7 @@ void testApp::setup(){
     }
 
     positions.push_back(ofVec3f(mouseX, mouseY, 0));
-    opacities.push_back(1.0);
+    colors.push_back(ofVec4f(1.0,1.0,1.0,1.0));
     m_mouseIdx = positions.size() - 1;
     for(int i=0; i<c; ++i) {
         for(int j=i+1; j<c; ++j) {
@@ -39,7 +41,7 @@ void testApp::setup(){
     }
 
     printf("Got %d curves\n", curves.size());
-    m_curves.setup(positions, opacities, curves);
+    m_curves.setup(positions, colors, curves);
 }
 
 //--------------------------------------------------------------

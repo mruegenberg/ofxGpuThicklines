@@ -1,30 +1,29 @@
-#ifndef OFXGPUCURVES_H
-#define OFXGPUCURVES_H
+#pragma once
 
 #include "ofMain.h"
 
-class ofxGpuCurves
+class ofxGpuThicklines
 {
 public:
-    ofxGpuCurves() {  }
-    virtual ~ofxGpuCurves() { ; }
+    ofxGpuThicklines() {  }
+    virtual ~ofxGpuThicklines() { ; }
 
-    /// `positions` and `opacities` should be vectors of equal length containing the data
+    /// `positions` and `colors` should be vectors of equal length containing the data
     /// for each point.
     /// each element of `curves` describes a single curve in terms of the corresponding point
     /// indices
     /// i.e we assume
-    ///     positions.size == opacities.size and
+    ///     positions.size == colors.size and
     ///     for all c in curves: [  for all i in c: i <= positions.size  ]
-    void setup(vector<ofVec3f> positions, vector<float> opacities,
+    void setup(vector<ofVec3f> positions, vector<ofVec4f> colors,
                vector< vector<size_t> > curves);
-    void setup(vector<ofVec3f> positions, vector<float> opacities,
+    void setup(vector<ofVec3f> positions, vector<ofVec4f> colors,
                vector< vector<size_t> > curves,
                ofShader pointShader);
-    void reset(vector<ofVec3f> positions, vector<float> opacities, vector< vector<size_t> > curves);
+    void reset(vector<ofVec3f> positions, vector<ofVec4f> colors, vector< vector<size_t> > curves);
 
     const vector<ofVec3f> &positions() const { return m_positions; }
-    const vector<float> &opacities() const { return m_opacities; }
+    const vector<ofVec4f> &colors() const { return m_colors; }
 
     size_t numPositions() { return m_positions.size(); }
 
@@ -33,10 +32,10 @@ public:
 
     // always wrap all update calls with  `beginUpdates()` and `endUpdates()`
     void updatePosition(size_t i, ofVec3f v) { m_positions[i] = v; }
-    void updateOpacity(size_t i, float o) { m_opacities[i] = o; }
-    void updateVertex(size_t i, ofVec3f v, float o) {
+    void updateColor(size_t i, ofVec4f o) { m_colors[i] = o; }
+    void updateVertex(size_t i, ofVec3f v, ofVec4f o) {
         updatePosition(i, v);
-        updateOpacity(i, o);
+        updateColor(i, o);
     }
     // TODO: ability to update curves
     
@@ -53,12 +52,10 @@ protected:
     ofVbo m_pointsVbo;
 
     vector<ofVec3f> m_positions;
-    vector<float> m_opacities;
+    vector<ofVec4f> m_colors;
 
     vector< vector<size_t> > m_structure;
     size_t m_indexCount;
 
     bool m_customPointShader;
 };
-
-#endif
