@@ -34,6 +34,8 @@ void ofxGpuThicklines::setup(vector<ofVec3f> positions,
                              "    vec2 p1 = screen_space( gl_in[1].gl_Position );\n" // end of previous segment, start of current segment
                              "    vec2 p2 = screen_space( gl_in[2].gl_Position );\n" // end of current segment, start of next segment
                              "    vec2 p3 = screen_space( gl_in[3].gl_Position );\n" // end of next segment
+                             "    float thicknessA = THICKNESS * (500.0 / gl_in[1].gl_Position.w);\n" // for uniformly thick lines, set these to be just THICKNESS. here, we estimate the scaling of the width by perspective
+                             "    float thicknessB = THICKNESS * (500.0 / gl_in[2].gl_Position.w);\n"
                              "\n"
                              "    \n" // determine the direction of each of the 3 segments (previous, current, next)
                              "    vec2 v0 = normalize(p1-p0);\n"
@@ -50,26 +52,25 @@ void ofxGpuThicklines::setup(vector<ofVec3f> positions,
                              "    vec2 miter_b = normalize(n1 + n2);\n" // miter at end of current segment
                              "\n"
                              "    \n" // determine the length of the miter by projecting it onto normal and then inverse it
-                             "    float length_a = THICKNESS / dot(miter_a, n1);\n"
-                             "    float length_b = THICKNESS / dot(miter_b, n1);\n"
+                             "    float length_a = thicknessA / dot(miter_a, n1);\n"
+                             "    float length_b = thicknessB / dot(miter_b, n1);\n"
                              "\n"
-
                              "    // prevent excessively long miters at sharp corners\n"
                              "    if( dot(v0,v1) < -MITER_LIMIT ) {\n"
                              "	miter_a = n1;\n"
-                             "	length_a = THICKNESS;\n"
+                             "	length_a = thicknessA;\n"
                              "\n"
                              "        float f = sign(dot(v0,n1));\n"
                              "        float g = f > 0 ? 0 : 1;\n"
                              "\n"
                              "        fTexCoordVarying = vec2(0, g); // TODO: use tex coord from vertices\n"
                              "        fColorVarying = colorVarying[1];\n"
-                             "        gl_Position = vec4( (p1 + THICKNESS * mix(n0,n1,g) * f) / WIN_SCALE, 0.0, 1.0 );\n"
+                             "        gl_Position = vec4( (p1 + thicknessA * mix(n0,n1,g) * f) / WIN_SCALE, 0.0, 1.0 );\n"
                              "        EmitVertex();\n"
                              "\n"
                              "        fTexCoordVarying = vec2(0, g); \n"
                              "        fColorVarying = colorVarying[1];\n"
-                             "        gl_Position = vec4( (p1 + THICKNESS * mix(n1,n0,g) * f) / WIN_SCALE, 0.0, 1.0 );\n"
+                             "        gl_Position = vec4( (p1 + thicknessA * mix(n1,n0,g) * f) / WIN_SCALE, 0.0, 1.0 );\n"
                              "        EmitVertex();\n"
                              "\n"
                              "        fTexCoordVarying = vec2(0, 0.5);\n"
@@ -81,7 +82,7 @@ void ofxGpuThicklines::setup(vector<ofVec3f> positions,
                              "\n"
                              "    if( dot(v1,v2) < -MITER_LIMIT ) {\n"
                              "	      miter_b = n1;\n"
-                             "	      length_b = THICKNESS;\n"
+                             "	      length_b = thicknessB;\n"
                              "    }\n"
                              "  \n"
                              "    \n" // generate the triangle strip
