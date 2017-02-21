@@ -142,7 +142,8 @@ void ofxGpuThicklines::setup(vector<ofVec3f> positions,
                              "}\n"
             );
 
-        m_curvesShader.unload();
+        if(m_curvesShader.isLoaded())
+            m_curvesShader.unload();
         m_curvesShader.setupShaderFromSource(GL_GEOMETRY_SHADER, geomShader);
         m_curvesShader.setupShaderFromSource(GL_FRAGMENT_SHADER, fragShader);
         m_curvesShader.setupShaderFromSource(GL_VERTEX_SHADER, vertShader);
@@ -233,8 +234,9 @@ void ofxGpuThicklines::setup(vector<ofVec3f> positions,
                              "    outputColor = globalColor * fColorVarying * circleTest;\n"
                              "}\n"
             );
-        
-        pointShader.unload();
+
+        if(pointShader.isLoaded())
+            pointShader.unload();
         pointShader.setupShaderFromSource(GL_GEOMETRY_SHADER, geomShader);
         pointShader.setupShaderFromSource(GL_FRAGMENT_SHADER, fragShader);
         pointShader.setupShaderFromSource(GL_VERTEX_SHADER, vertShader);
@@ -319,6 +321,11 @@ void ofxGpuThicklines::reset(vector<ofVec3f> positions,
         m_pointsVbo.setAttributeData(m_pointShader.getAttributeLocation("color"),
                                      &m_colors[0].x, 4, m_colors.size(), GL_DYNAMIC_DRAW);
     }
+}
+
+void ofxGpuThicklines::exit() {
+    m_curvesShader.unload();
+    m_pointShader.unload();
 }
 
 

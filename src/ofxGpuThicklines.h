@@ -21,6 +21,7 @@ public:
                vector< vector<size_t> > curves,
                ofShader pointShader);
     void reset(vector<ofVec3f> positions, vector<ofVec4f> colors, vector< vector<size_t> > curves);
+    void exit();
 
     const vector<ofVec3f> &positions() const { return m_positions; }
     const vector<ofVec4f> &colors() const { return m_colors; }

@@ -76,6 +76,11 @@ void testApp::draw(){
     } ofDisableBlendMode();
 }
 
+void testApp::exit() {
+    m_curves.exit();
+}
+    
+
 //--------------------------------------------------------------
 void testApp::keyPressed(int key){
 
