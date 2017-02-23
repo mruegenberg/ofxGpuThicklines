@@ -20,6 +20,11 @@ public:
     void setup(vector<ofVec3f> positions, vector<ofVec4f> colors,
                vector< vector<size_t> > curves,
                ofShader pointShader);
+
+    // builds a thick wireframe from a mesh
+    // this modifies the passed mesh by merging duplicate vertices, since there are drawing errors otherwise.
+    void setup(ofMesh &mesh);
+    
     void reset(vector<ofVec3f> positions, vector<ofVec4f> colors, vector< vector<size_t> > curves);
     void exit();
 

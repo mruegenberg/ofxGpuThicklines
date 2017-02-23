@@ -248,6 +248,123 @@ void ofxGpuThicklines::setup(vector<ofVec3f> positions,
     m_customPointShader = false;
 }
 
+void ofxGpuThicklines::setup(ofMesh &mesh) {
+    mesh.mergeDuplicateVertices();
+    vector<ofVec4f> colors; colors.reserve(mesh.getNumVertices());
+    if(mesh.getNumColors() == mesh.getNumVertices()) {
+        for(const ofFloatColor &c : mesh.getColors()) {
+            colors.push_back(ofVec4f(c.r,c.g,c.b,c.a));
+        }
+    }
+    else {
+        for(size_t i=0; i<mesh.getNumVertices(); ++i)
+            colors.push_back(ofVec4f(1,1,1,0.3));
+    }
+    // ofLogNotice("ofxGpuThicklines", "setup mesh with %lu vertices, %lu colors (resolved to %lu)",
+                // mesh.getNumVertices(), mesh.getNumColors(), colors.size());
+
+    vector< vector<size_t> > curves;
+    {
+        // each edge needs to be part of exactly one curve
+        // we'd like to add multiple edges in each curve.
+
+        // build adjacency list. For edge (i,j), adjacency[i] contains j and adjacency[j] contains i
+        map< size_t, set<size_t> > adjacency;
+        set< size_t > liveVertices;
+        {
+            for(int i0=0; i0<(int)mesh.getIndices().size() - 2; i0+=3) {
+                size_t i = mesh.getIndex(i0);
+                size_t j = mesh.getIndex(i0 + 1);
+                size_t k = mesh.getIndex(i0 + 2);
+            
+                adjacency[i].insert(j);
+                adjacency[j].insert(i);
+                adjacency[i].insert(k);
+                adjacency[k].insert(i);
+                adjacency[j].insert(k);
+                adjacency[k].insert(j);
+
+                liveVertices.insert(i);
+                liveVertices.insert(j);
+                liveVertices.insert(k);
+            }
+        }
+        ofLogNotice("ofxGpuThicklines", "adjacency has %lu elements, live vertices are %lu", adjacency.size(), liveVertices.size());
+
+        vector<size_t> currentCurve;
+        map<size_t, set<size_t>> addedEdges;
+        while(! liveVertices.empty()) {
+            size_t curVertex = *liveVertices.begin(); // take any vertex
+
+            /*
+            for(const size_t &neighbor : adjacency[curVertex]) {
+                currentCurve.push_back(curVertex);
+                currentCurve.push_back(neighbor);
+                curves.push_back(currentCurve);
+                currentCurve = vector<size_t>();
+            }
+            liveVertices.erase(liveVertices.begin());
+            continue;
+            */
+                
+            bool firstVertex = true;
+            
+            // ofLogNotice("ofxGpuThicklines", "curve add iter %lu", curVertex);
+            while(true) {
+                bool foundNone = true;
+                for(const size_t &neighbor : adjacency[curVertex]) { // find any neighbor whose edge is not yet added
+                    size_t a = curVertex;
+                    size_t b = neighbor;
+                    if(a > b) std::swap(a, b);
+                            
+                    if(addedEdges[a].find(b) == addedEdges[a].end()) { // if the edge to neighbor was not yet added...
+                        // add that edge to the current curve and the added edges
+                        
+                        // current edge not yet added
+                        if(firstVertex) { // add first vertex as well => avoid 1-vertex curves
+                            firstVertex = false;
+                            currentCurve.push_back(curVertex);
+                        }
+                        foundNone = false;
+                        currentCurve.push_back(neighbor);
+                        addedEdges[a].insert(b);
+
+                        // keep going with the edge we just added
+                        curVertex = neighbor;
+                        break;
+                    }
+                }
+                // if no neighbor vertex with a non-added edge was found,
+                // remove the current vertex from the live vertices so that another one is picked next time
+                if(foundNone) {
+                    if(currentCurve.size() > 0) {
+                        curves.push_back(currentCurve);
+                        currentCurve = vector<size_t>();
+                        firstVertex = true;
+                    }
+                    liveVertices.erase(liveVertices.find(curVertex));
+                    break;
+                }
+            }
+        }
+        // if there is an unfinished curve, add it as well
+        if(currentCurve.size() > 0) {
+            curves.push_back(currentCurve);
+        }
+
+        // curves.erase(curves.begin() + curves.size() - 1);
+    } // end add curves
+    
+    // ofLogNotice("ofxGpuThicklines", "setup mesh with %lu curves", curves.size());
+    // int x = 0;
+    // for(vector<size_t> &c : curves) {
+        // ofLogNotice("ofxGpuThicklines", "\tcurve %d: %s", x, ofToString(c).c_str());
+        // x++;
+    // }        
+        
+    setup(mesh.getVertices(), colors, curves);
+}
+
 void ofxGpuThicklines::reset(vector<ofVec3f> positions,
                          vector<ofVec4f> colors,
                          vector< vector<size_t> > curves) {
