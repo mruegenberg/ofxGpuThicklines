@@ -7,10 +7,25 @@ void testApp::setup(){
     ofSetVerticalSync(true);
     m_w = ofGetWidth();
     m_h = ofGetHeight();
-    float t = ofGetElapsedTimef();
 
     sphere = ofMesh::sphere(500, 12, OF_PRIMITIVE_TRIANGLES); // already has tex coords.
-    m_curves.setup(sphere);
+
+    string fragShader = ("#version 150\n"
+                         "\n"
+                         "in vec4 fColorVarying;\n"
+                         "in vec2 fTexCoordVarying;\n"
+                         "in vec2 flocalTexCoord;\n"
+                         "uniform vec4 globalColor;\n"
+                         "uniform float time;\n"
+                         "\n"
+                         "out vec4 outputColor;\n"
+                         "\n"
+                         "void main()\n"
+                         "{\n"
+                         "    outputColor = globalColor * fColorVarying * (sin(time * 3) * 0.5 + 0.5);\n"
+                         "}\n");
+                         
+    m_curves.setup(sphere, fragShader);
 }
 
 //--------------------------------------------------------------
@@ -35,6 +50,10 @@ void testApp::draw(){
         m_cam.begin();
         {
             ofSetColor(255,50,10,255);
+
+            ofShader s = m_curves.prepareDraw();
+            s.setUniform1f("time", ofGetElapsedTimef());
+            
             m_curves.draw();
             //  m_curves.drawVertices();
             ofColor c = ofColor::white;

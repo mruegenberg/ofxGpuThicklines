@@ -4,7 +4,8 @@
 void ofxGpuThicklines::setup(vector<ofVec3f> positions,
                              vector<ofVec4f> colors,
                              vector<ofVec2f> texcoords,
-                             vector< vector<size_t> > curves) {
+                             vector< vector<size_t> > curves,
+                             string customFragShader) {
     // curve shader
     {
         string geomShader = ("#version 150 core\n"
@@ -153,15 +154,18 @@ void ofxGpuThicklines::setup(vector<ofVec3f> positions,
                              "\n"
                              "void main()\n"
                              "{\n"
-                             "    outputColor = globalColor * fColorVarying;\n" //  * flocalTexCoord.x
+                             "    outputColor = globalColor * fColorVarying;\n"
                              "}\n"
             );
+        if(customFragShader.length() != 0)
+            fragShader = customFragShader;
 
         if(m_curvesShader.isLoaded())
             m_curvesShader.unload();
         m_curvesShader.setupShaderFromSource(GL_GEOMETRY_SHADER, geomShader);
         m_curvesShader.setupShaderFromSource(GL_FRAGMENT_SHADER, fragShader);
         m_curvesShader.setupShaderFromSource(GL_VERTEX_SHADER, vertShader);
+        m_curvesShader.bindDefaults();
         m_curvesShader.linkProgram();
     }
     
@@ -169,13 +173,14 @@ void ofxGpuThicklines::setup(vector<ofVec3f> positions,
 }
 
 void ofxGpuThicklines::setup(vector<ofVec3f> positions,
-                         vector<ofVec4f> colors,
-                         vector< vector<size_t> > curves) {
+                             vector<ofVec4f> colors,
+                             vector< vector<size_t> > curves,
+                             string customFragShader) {
     vector<ofVec2f> texcoords; // intentionally empty
-    setup(positions, colors, texcoords, curves);
+    setup(positions, colors, texcoords, curves, customFragShader);
 }
 
-void ofxGpuThicklines::setup(ofMesh &mesh) {
+void ofxGpuThicklines::setup(ofMesh &mesh, string customFragShader) {
     mesh.mergeDuplicateVertices();
     vector<ofVec4f> colors; colors.reserve(mesh.getNumVertices());
     if(mesh.getNumColors() == mesh.getNumVertices()) {
@@ -188,7 +193,7 @@ void ofxGpuThicklines::setup(ofMesh &mesh) {
             colors.push_back(ofVec4f(1,1,1,0.3));
     }
     // ofLogNotice("ofxGpuThicklines", "setup mesh with %lu vertices, %lu colors (resolved to %lu)",
-                // mesh.getNumVertices(), mesh.getNumColors(), colors.size());
+    // mesh.getNumVertices(), mesh.getNumColors(), colors.size());
 
     vector< vector<size_t> > curves;
     {
@@ -216,23 +221,12 @@ void ofxGpuThicklines::setup(ofMesh &mesh) {
                 liveVertices.insert(k);
             }
         }
-        ofLogNotice("ofxGpuThicklines", "adjacency has %lu elements, live vertices are %lu", adjacency.size(), liveVertices.size());
+        // ofLogNotice("ofxGpuThicklines", "adjacency has %lu elements, live vertices are %lu", adjacency.size(), liveVertices.size());
 
         vector<size_t> currentCurve;
         map<size_t, set<size_t>> addedEdges;
         while(! liveVertices.empty()) {
             size_t curVertex = *liveVertices.begin(); // take any vertex
-
-            /*
-            for(const size_t &neighbor : adjacency[curVertex]) {
-                currentCurve.push_back(curVertex);
-                currentCurve.push_back(neighbor);
-                curves.push_back(currentCurve);
-                currentCurve = vector<size_t>();
-            }
-            liveVertices.erase(liveVertices.begin());
-            continue;
-            */
                 
             bool firstVertex = true;
             
@@ -262,7 +256,7 @@ void ofxGpuThicklines::setup(ofMesh &mesh) {
                     }
                 }
                 // if no neighbor vertex with a non-added edge was found,
-                // remove the current vertex from the live vertices so that another one is picked next time
+                // remove the current vertex from the live vertices so that another one is picked next time (and a new curve started)
                 if(foundNone) {
                     if(currentCurve.size() > 0) {
                         curves.push_back(currentCurve);
@@ -285,17 +279,19 @@ void ofxGpuThicklines::setup(ofMesh &mesh) {
     // ofLogNotice("ofxGpuThicklines", "setup mesh with %lu curves", curves.size());
     // int x = 0;
     // for(vector<size_t> &c : curves) {
-        // ofLogNotice("ofxGpuThicklines", "\tcurve %d: %s", x, ofToString(c).c_str());
-        // x++;
+    // ofLogNotice("ofxGpuThicklines", "\tcurve %d: %s", x, ofToString(c).c_str());
+    // x++;
     // }        
         
-    setup(mesh.getVertices(), colors, mesh.getTexCoords(), curves);
+    setup(mesh.getVertices(), colors, mesh.getTexCoords(), curves, customFragShader);
 }
 
 void ofxGpuThicklines::reset(vector<ofVec3f> positions,
                              vector<ofVec4f> colors,
                              vector<ofVec2f> texcoords,
                              vector< vector<size_t> > curves) {
+    m_shaderBegun = false;
+    
     assert(positions.size() == colors.size());
 
     m_positions = positions;
@@ -321,38 +317,21 @@ void ofxGpuThicklines::reset(vector<ofVec3f> positions,
             connIndices.insert(connIndices.begin() + 1, conn.begin(), conn.end());
             connIndices.push_back(conn[conn.size() - 1]);
             /*
-            printf("connx: ");
-            for(size_t i = 0; i<connIndices.size(); ++i) 
-                printf("%lu ", connIndices[i]);
-            printf("\n");
+              printf("connx: ");
+              for(size_t i = 0; i<connIndices.size(); ++i) 
+              printf("%lu ", connIndices[i]);
+              printf("\n");
             */
             
             if(connIndices.size() < 4) continue;
 
             // transform connIndices to be like GL lines adjacency
             for(size_t i=0; i+3<connIndices.size(); ++i) {
-                // if(i % 2 == 0) {
                 indices.push_back(connIndices[i]);
                 indices.push_back(connIndices[i+1]);
                 indices.push_back(connIndices[i+2]);
                 indices.push_back(connIndices[i+3]);
-                // }
-                // else {
-                /*
-                                    indices.push_back(connIndices[i+3]);
-                indices.push_back(connIndices[i+2]);
-                indices.push_back(connIndices[i+1]);
-                indices.push_back(connIndices[i+0]);
-                */
-                //  }
-                
             }
-            /*
-            printf("conn: ");
-            for(size_t i = 0; i<indices.size(); ++i)
-                printf("%lu ", indices[i]);
-            printf("\n");
-            */
         }
         
         m_curvesVbo.setIndexData(&indices[0], indices.size(), GL_STATIC_DRAW);
@@ -364,7 +343,6 @@ void ofxGpuThicklines::reset(vector<ofVec3f> positions,
         m_curvesVbo.setTexCoordData(&m_texcoords[0], m_texcoords.size(), GL_DYNAMIC_DRAW);
 
         // using `setTexCoordData` here doesn't work, probably because our attributes are in a different order from the default shader (from which that function takes the attribute location to set)
-        float *coords = &m_texcoords[0].x;
         m_curvesVbo.setAttributeData(m_curvesShader.getAttributeLocation("texcoord"),
                                      &m_texcoords[0].x, 2, m_texcoords.size(), GL_DYNAMIC_DRAW);
     }
@@ -386,11 +364,19 @@ void ofxGpuThicklines::endUpdates() {
                                     &m_colors[0].x, m_colors.size());
 }
 
+ofShader &ofxGpuThicklines::prepareDraw() {
+    m_curvesShader.begin();
+    m_shaderBegun = true;
+    return m_curvesShader;
+}
 
 void ofxGpuThicklines::draw() {
     ofFill();
-    m_curvesShader.begin();
+    if(! m_shaderBegun)
+        m_curvesShader.begin();
     m_curvesVbo.drawElements(GL_LINES_ADJACENCY, m_indexCount);
     m_curvesShader.end();
+
+    m_shaderBegun = false;
 }
 

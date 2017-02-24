@@ -5,7 +5,7 @@
 class ofxGpuThicklines
 {
 public:
-    ofxGpuThicklines() {  }
+    ofxGpuThicklines() : m_shaderBegun(false) {  }
     virtual ~ofxGpuThicklines() { ; }
 
     /// `positions` and `colors` should be vectors of equal length containing the data
@@ -15,14 +15,18 @@ public:
     /// i.e we assume
     ///     positions.size == colors.size and
     ///     for all c in curves: [  for all i in c: i <= positions.size  ]
+    /// `customFragShader` is the GLSL code for the fragment shader to use.
+    ///     When this is a nonempty string, this is used instead of the default fragment shader.
+    //      Use `prepareDraw()` before calling `draw()` to set uniforms or attributes on the shader.
+    ///     The thickwireframe example shows how to use this.
     void setup(vector<ofVec3f> positions, vector<ofVec4f> colors,
-               vector< vector<size_t> > curves);
+               vector< vector<size_t> > curves, string customFragShader = "");
     void setup(vector<ofVec3f> positions, vector<ofVec4f> colors, vector<ofVec2f> texcoords,
-               vector< vector<size_t> > curves);    
+               vector< vector<size_t> > curves, string customFragShader = "");
 
     // builds a thick wireframe from a mesh
     // this modifies the passed mesh by merging duplicate vertices, since there are drawing errors otherwise.
-    void setup(ofMesh &mesh);
+    void setup(ofMesh &mesh, string customFragShader = "");
     
     void reset(vector<ofVec3f> positions, vector<ofVec4f> colors, vector<ofVec2f> texcoords, vector< vector<size_t> > curves);
     void exit();
@@ -46,6 +50,7 @@ public:
     
     size_t numIndices() { return m_indexCount; }
 
+    ofShader &prepareDraw(); // call this once before `draw()` if using a custom fragment shader. Do not call it multiple times.
     void draw();
 
 protected:
@@ -58,4 +63,6 @@ protected:
 
     vector< vector<size_t> > m_structure;
     size_t m_indexCount;
+
+    bool m_shaderBegun; // was prepareDraw() already called?
 };
