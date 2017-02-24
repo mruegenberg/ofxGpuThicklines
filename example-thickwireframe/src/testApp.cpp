@@ -30,8 +30,9 @@ void testApp::setup(){
 
 //--------------------------------------------------------------
 void testApp::update(){
+    ofVec3f mousePos = ofVec3f( (float)ofGetMouseX(), (float)ofGetMouseY(), -1000);
     m_curves.beginUpdates();
-    m_curves.updatePosition(m_mouseIdx, ofVec3f(mouseX, mouseY, 0));
+    m_curves.updatePosition(m_mouseIdx, mousePos);
     m_curves.endUpdates();
 
     // FPS
