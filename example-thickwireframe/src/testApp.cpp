@@ -9,7 +9,7 @@ void testApp::setup(){
     m_h = ofGetHeight();
     float t = ofGetElapsedTimef();
 
-    sphere = ofMesh::sphere(500, 12, OF_PRIMITIVE_TRIANGLES);
+    sphere = ofMesh::sphere(500, 12, OF_PRIMITIVE_TRIANGLES); // already has tex coords.
     m_curves.setup(sphere);
 }
 

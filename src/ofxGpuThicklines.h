@@ -17,15 +17,14 @@ public:
     ///     for all c in curves: [  for all i in c: i <= positions.size  ]
     void setup(vector<ofVec3f> positions, vector<ofVec4f> colors,
                vector< vector<size_t> > curves);
-    void setup(vector<ofVec3f> positions, vector<ofVec4f> colors,
-               vector< vector<size_t> > curves,
-               ofShader pointShader);
+    void setup(vector<ofVec3f> positions, vector<ofVec4f> colors, vector<ofVec2f> texcoords,
+               vector< vector<size_t> > curves);    
 
     // builds a thick wireframe from a mesh
     // this modifies the passed mesh by merging duplicate vertices, since there are drawing errors otherwise.
     void setup(ofMesh &mesh);
     
-    void reset(vector<ofVec3f> positions, vector<ofVec4f> colors, vector< vector<size_t> > curves);
+    void reset(vector<ofVec3f> positions, vector<ofVec4f> colors, vector<ofVec2f> texcoords, vector< vector<size_t> > curves);
     void exit();
 
     const vector<ofVec3f> &positions() const { return m_positions; }
@@ -48,20 +47,15 @@ public:
     size_t numIndices() { return m_indexCount; }
 
     void draw();
-    void drawVertices(float radius = 6); // `radius` is only used if no point shader was supplied on setup
 
 protected:
     ofShader m_curvesShader;
     ofVbo m_curvesVbo;
 
-    ofShader m_pointShader;
-    ofVbo m_pointsVbo;
-
     vector<ofVec3f> m_positions;
     vector<ofVec4f> m_colors;
+    vector<ofVec2f> m_texcoords;
 
     vector< vector<size_t> > m_structure;
     size_t m_indexCount;
-
-    bool m_customPointShader;
 };
