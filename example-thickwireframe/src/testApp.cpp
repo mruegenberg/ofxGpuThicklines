@@ -12,6 +12,11 @@ void testApp::setup(){
 
     string fragShader = ("#version 150\n"
                          "\n"
+                         "float rand(vec2 co){\n"
+                         "    return fract(sin(dot(co.xy ,vec2(12.9898,78.233))) * 43758.5453);\n"
+                         "}"
+                         "\n"
+                         "flat in int edgeID;\n"
                          "in vec4 fColorVarying;\n"
                          "in vec2 fTexCoordVarying;\n"
                          "in vec2 flocalTexCoord;\n"
@@ -22,7 +27,8 @@ void testApp::setup(){
                          "\n"
                          "void main()\n"
                          "{\n"
-                         "    outputColor = globalColor * fColorVarying * (sin(time * 3) * 0.5 + 0.5);\n"
+                         "    float m = (sin(time * 1.5 + 64332.23 * rand( vec2(float(edgeID),44322.123) )) * 0.5 + 0.5);\n"
+                         "    outputColor = globalColor * fColorVarying * m;\n"
                          "}\n");
                          
     m_curves.setup(sphere, fragShader);

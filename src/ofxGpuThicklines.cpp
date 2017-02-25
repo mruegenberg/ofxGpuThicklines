@@ -16,6 +16,7 @@ void ofxGpuThicklines::setup(vector<ofVec3f> positions,
                              "\n"
                              "in vec4 colorVarying[];\n"
                              "in vec2 texCoordVarying[];\n"
+                             "in int vertexID[];\n"
                              "\n"
                              "layout(lines_adjacency) in;\n"
                              "layout(triangle_strip, max_vertices = 7) out;\n"
@@ -24,6 +25,7 @@ void ofxGpuThicklines::setup(vector<ofVec3f> positions,
                              "out vec2 fTexCoordVarying;\n"
                              "out vec2 flocalTexCoord;\n"
                              "out vec4 fColorVarying;\n"
+                             "flat out int edgeID;\n"
                              "\n"
                              "vec2 screen_space(vec4 vertex) {\n"
                              "    return vec2( vertex.xy / vertex.w ) * WIN_SCALE;\n"
@@ -39,6 +41,11 @@ void ofxGpuThicklines::setup(vector<ofVec3f> positions,
                              "\n"
                              "    vec2 texCoord1 = texCoordVarying[1];\n"
                              "    vec2 texCoord2 = texCoordVarying[2];\n"
+                             "\n"
+                             // Cantor's pairing function.
+                             // might be possible to find a tighter mapping when assuming that the two vertex
+                             // ids are never equal.
+                             "    edgeID = ((vertexID[1] + vertexID[2]) * (vertexID[1] + vertexID[2] + 1) / 2 + vertexID[2]);\n" 
                              "\n"
                              "    float thicknessA = THICKNESS * (500.0 / gl_in[1].gl_Position.w);\n" // for uniformly thick lines, set these to be just THICKNESS. here, we estimate the scaling of the width by perspective
                              "    float thicknessB = THICKNESS * (500.0 / gl_in[2].gl_Position.w);\n"
@@ -133,6 +140,7 @@ void ofxGpuThicklines::setup(vector<ofVec3f> positions,
                              "\n"
                              "out vec4 colorVarying;\n"
                              "out vec2 texCoordVarying;\n"
+                             "out int vertexID;\n"
                              "\n"
                              "void main()\n"
                              "{\n"
@@ -140,6 +148,7 @@ void ofxGpuThicklines::setup(vector<ofVec3f> positions,
                              "    colorVarying = color;\n"
                              "    vec2 drawTexCoord = (textureMatrix*vec4(texcoord.x,texcoord.y,0,1)).xy;\n"
                              "    texCoordVarying = drawTexCoord;\n"
+                             "    vertexID = gl_VertexID;\n"
                              "}\n"
             );
         
@@ -272,8 +281,6 @@ void ofxGpuThicklines::setup(ofMesh &mesh, string customFragShader) {
         if(currentCurve.size() > 0) {
             curves.push_back(currentCurve);
         }
-
-        // curves.erase(curves.begin() + curves.size() - 1);
     } // end add curves
     
     // ofLogNotice("ofxGpuThicklines", "setup mesh with %lu curves", curves.size());
