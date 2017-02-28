@@ -47,8 +47,8 @@ void ofxGpuThicklines::setup(vector<ofVec3f> positions,
                              // ids are never equal.
                              "    edgeID = ((vertexID[1] + vertexID[2]) * (vertexID[1] + vertexID[2] + 1) / 2 + vertexID[2]);\n" 
                              "\n"
-                             "    float thicknessA = THICKNESS * (500.0 / gl_in[1].gl_Position.w);\n" // for uniformly thick lines, set these to be just THICKNESS. here, we estimate the scaling of the width by perspective
-                             "    float thicknessB = THICKNESS * (500.0 / gl_in[2].gl_Position.w);\n"
+                             "    float thicknessA = THICKNESS;"// * (500.0 / gl_in[1].gl_Position.w);\n" // for uniformly thick lines, set these to be just THICKNESS. here, we estimate the scaling of the width by perspective
+                             "    float thicknessB = THICKNESS;"// * (500.0 / gl_in[2].gl_Position.w);\n"
                              "\n"
                              "    \n" // determine the direction of each of the 3 segments (previous, current, next)
                              "    vec2 v0 = normalize(p1-p0);\n"
@@ -195,7 +195,7 @@ void ofxGpuThicklines::setup(vector<ofVec3f> positions,
     setup(positions, colors, texcoords, curves, customFragShader);
 }
 
-void ofxGpuThicklines::setup(ofMesh &mesh, string customFragShader) {
+void ofxGpuThicklines::setup(ofMesh &mesh, string customFragShader, bool onlylines) {
     mesh.mergeDuplicateVertices();
     vector<ofVec4f> colors; colors.reserve(mesh.getNumVertices());
     if(mesh.getNumColors() == mesh.getNumVertices()) {
@@ -219,21 +219,37 @@ void ofxGpuThicklines::setup(ofMesh &mesh, string customFragShader) {
         map< size_t, set<size_t> > adjacency;
         set< size_t > liveVertices;
         {
-            for(int i0=0; i0<(int)mesh.getIndices().size() - 2; i0+=3) {
-                size_t i = mesh.getIndex(i0);
-                size_t j = mesh.getIndex(i0 + 1);
-                size_t k = mesh.getIndex(i0 + 2);
+            if(! onlylines) { // triangles
+                for(int i0=0; i0<(int)mesh.getIndices().size() - 2; i0+=3) {
+                    size_t i = mesh.getIndex(i0);
+                    size_t j = mesh.getIndex(i0 + 1);
+                    size_t k = mesh.getIndex(i0 + 2);
             
-                adjacency[i].insert(j);
-                adjacency[j].insert(i);
-                adjacency[i].insert(k);
-                adjacency[k].insert(i);
-                adjacency[j].insert(k);
-                adjacency[k].insert(j);
+                    adjacency[i].insert(j);
+                    adjacency[j].insert(i);
+                    adjacency[i].insert(k);
+                    adjacency[k].insert(i);
+                    adjacency[j].insert(k);
+                    adjacency[k].insert(j);
 
-                liveVertices.insert(i);
-                liveVertices.insert(j);
-                liveVertices.insert(k);
+                    liveVertices.insert(i);
+                    liveVertices.insert(j);
+                    liveVertices.insert(k);
+                }
+            }
+            else {
+                ofLogNotice("only");
+                for(int i0=0; i0<(int)mesh.getIndices().size() - 1; i0+=2) {
+                    size_t i = mesh.getIndex(i0);
+                    size_t j = mesh.getIndex(i0 + 1);
+            
+                    adjacency[i].insert(j);
+                    adjacency[j].insert(i);
+
+                    liveVertices.insert(i);
+                    liveVertices.insert(j);
+
+                }
             }
         }
         // ofLogNotice("ofxGpuThicklines", "adjacency has %lu elements, live vertices are %lu", adjacency.size(), liveVertices.size());
@@ -362,6 +378,8 @@ void ofxGpuThicklines::reset(vector<ofVec3f> positions,
 }
 
 void ofxGpuThicklines::exit() {
+    ofLogNotice("exit");
+    m_curvesVbo.clear();
     m_curvesShader.unload();
 }
 

@@ -69,7 +69,6 @@ void testApp::draw(){
         ofTranslate(-m_w / 2, -m_h / 2);
         {
             m_curves.draw();
-            m_curves.drawVertices();
         }
         ofPopMatrix();
         m_cam.end();

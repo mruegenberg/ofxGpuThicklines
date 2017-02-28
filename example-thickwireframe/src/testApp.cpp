@@ -31,7 +31,7 @@ void testApp::setup(){
                          "    outputColor = globalColor * fColorVarying * m;\n"
                          "}\n");
                          
-    m_curves.setup(sphere, fragShader);
+    m_curves.setup(sphere, fragShader, true);
 }
 
 //--------------------------------------------------------------
