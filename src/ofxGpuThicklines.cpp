@@ -10,9 +10,10 @@ void ofxGpuThicklines::setup(vector<ofVec3f> positions,
     {
         string geomShader = ("#version 150 core\n"
                              "\n"
-                             "#define THICKNESS 3\n" //"uniform float	THICKNESS;\n" // the thickness of the line in pixels
+                             "uniform float thickness;\n" // the thickness of the line. if `perspective` is 0, the line width in pixels
+                             "uniform int perspective;\n" // whether to use perspective for determining line thickness
                              "#define MITER_LIMIT 0.75\n" // "uniform float	MITER_LIMIT;\n" // 1.0: always miter, -1.0: never miter, 0.75: default
-                             "#define WIN_SCALE vec2(1024,768)\n" // "uniform vec2	WIN_SCALE;\n"// the size of the viewport in pixels
+                             "uniform vec2	viewportSize;\n"// the size of the viewport in pixels
                              "\n"
                              "in vec4 colorVarying[];\n"
                              "in vec2 texCoordVarying[];\n"
@@ -28,7 +29,7 @@ void ofxGpuThicklines::setup(vector<ofVec3f> positions,
                              "flat out int edgeID;\n"
                              "\n"
                              "vec2 screen_space(vec4 vertex) {\n"
-                             "    return vec2( vertex.xy / vertex.w ) * WIN_SCALE;\n"
+                             "    return vec2( vertex.xy / vertex.w ) * viewportSize;\n"
                              "}\n"
                              "\n"
                              "void main(void)\n"
@@ -47,8 +48,9 @@ void ofxGpuThicklines::setup(vector<ofVec3f> positions,
                              // ids are never equal.
                              "    edgeID = ((vertexID[1] + vertexID[2]) * (vertexID[1] + vertexID[2] + 1) / 2 + vertexID[2]);\n" 
                              "\n"
-                             "    float thicknessA = THICKNESS;"// * (500.0 / gl_in[1].gl_Position.w);\n" // for uniformly thick lines, set these to be just THICKNESS. here, we estimate the scaling of the width by perspective
-                             "    float thicknessB = THICKNESS;"// * (500.0 / gl_in[2].gl_Position.w);\n"
+                             // we estimate the scaling of the width by perspective is `perspective` == 1
+                             "    float thicknessA = thickness * (bool(perspective) ? (500.0 / gl_in[1].gl_Position.w) : 1.0);\n" 
+                             "    float thicknessB = thickness * (bool(perspective) ? (500.0 / gl_in[2].gl_Position.w) : 1.0);\n"
                              "\n"
                              "    \n" // determine the direction of each of the 3 segments (previous, current, next)
                              "    vec2 v0 = normalize(p1-p0);\n"
@@ -85,19 +87,19 @@ void ofxGpuThicklines::setup(vector<ofVec3f> positions,
                              "        fTexCoordVarying = texCoord1;\n"
                              "        flocalTexCoord = vec2(0, g);\n"
                              "        fColorVarying = colorVarying[1];\n"
-                             "        gl_Position = vec4( (p1 + thicknessA * mix(n0,n1,g) * f) / WIN_SCALE, 0.0, 1.0 );\n"
+                             "        gl_Position = vec4( (p1 + thicknessA * mix(n0,n1,g) * f) / viewportSize, 0.0, 1.0 );\n"
                              "        EmitVertex();\n"
                              "\n"
                              "        fTexCoordVarying = texCoord1;\n"
                              "        flocalTexCoord = vec2(0, g); \n"
                              "        fColorVarying = colorVarying[1];\n"
-                             "        gl_Position = vec4( (p1 + thicknessA * mix(n1,n0,g) * f) / WIN_SCALE, 0.0, 1.0 );\n"
+                             "        gl_Position = vec4( (p1 + thicknessA * mix(n1,n0,g) * f) / viewportSize, 0.0, 1.0 );\n"
                              "        EmitVertex();\n"
                              "\n"
                              "        fTexCoordVarying = texCoord1;\n"
                              "        flocalTexCoord = vec2(0, 0.5);\n"
                              "        fColorVarying = colorVarying[1];\n"
-                             "        gl_Position = vec4( p1 / WIN_SCALE, 0.0, 1.0 );\n"
+                             "        gl_Position = vec4( p1 / viewportSize, 0.0, 1.0 );\n"
                              "        EmitVertex();\n"
                              "        EndPrimitive();\n"
                              "    }\n"
@@ -111,25 +113,25 @@ void ofxGpuThicklines::setup(vector<ofVec3f> positions,
                              "    fTexCoordVarying = texCoord1;\n"
                              "    flocalTexCoord = vec2(0,0);\n"
                              "    fColorVarying = colorVarying[1];\n"
-                             "    gl_Position = vec4( (p1 + length_a * miter_a) / WIN_SCALE, 0.0, 1.0 );\n"
+                             "    gl_Position = vec4( (p1 + length_a * miter_a) / viewportSize, 0.0, 1.0 );\n"
                              "    EmitVertex();\n"
                              "  \n"
                              "    fTexCoordVarying = texCoord1;\n"
                              "    flocalTexCoord = vec2(0,1);\n"
                              "    fColorVarying = colorVarying[1];\n"
-                             "    gl_Position = vec4( (p1 - length_a * miter_a) / WIN_SCALE, 0.0, 1.0 );\n"
+                             "    gl_Position = vec4( (p1 - length_a * miter_a) / viewportSize, 0.0, 1.0 );\n"
                              "    EmitVertex();\n"
                              "  \n"
                              "    fTexCoordVarying = texCoord2;\n"
                              "    flocalTexCoord = vec2(1,0);\n"
                              "    fColorVarying = colorVarying[2];\n"
-                             "    gl_Position = vec4( (p2 + length_b * miter_b) / WIN_SCALE, 0.0, 1.0 );\n"
+                             "    gl_Position = vec4( (p2 + length_b * miter_b) / viewportSize, 0.0, 1.0 );\n"
                              "    EmitVertex();\n"
                              "  \n"
                              "    fTexCoordVarying = texCoord2;\n"
                              "    flocalTexCoord = vec2(1,1);\n"
                              "    fColorVarying = colorVarying[2];\n"
-                             "    gl_Position = vec4( (p2 - length_b * miter_b) / WIN_SCALE, 0.0, 1.0 );\n"
+                             "    gl_Position = vec4( (p2 - length_b * miter_b) / viewportSize, 0.0, 1.0 );\n"
                              "    EmitVertex();\n"
                              "\n"
                              "    EndPrimitive();\n"
@@ -394,10 +396,15 @@ ofShader &ofxGpuThicklines::prepareDraw() {
     return m_curvesShader;
 }
 
-void ofxGpuThicklines::draw() {
+void ofxGpuThicklines::draw(float lineWidth, bool perspective, ofVec2f viewportSize) {
     ofFill();
     if(! m_shaderBegun)
         m_curvesShader.begin();
+    if(viewportSize.x == 0)
+        viewportSize = ofVec2f(ofGetWidth(), ofGetHeight());
+    m_curvesShader.setUniform2f("viewportSize", viewportSize);
+    m_curvesShader.setUniform1i("perspective", (int)perspective);
+    m_curvesShader.setUniform1f("thickness", lineWidth);
     m_curvesVbo.drawElements(GL_LINES_ADJACENCY, m_indexCount);
     m_curvesShader.end();
 

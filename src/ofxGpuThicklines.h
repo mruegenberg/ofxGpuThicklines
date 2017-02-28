@@ -52,7 +52,7 @@ public:
     size_t numIndices() { return m_indexCount; }
 
     ofShader &prepareDraw(); // call this once before `draw()` if using a custom fragment shader. Do not call it multiple times.
-    void draw();
+    void draw(float lineWidth = 3, bool perspective = true, ofVec2f viewportSize = ofVec2f(0,0)); // if viewportSize == 0, (ofGetWidth(), ofGetHeight()) is used.
 
 protected:
     ofShader m_curvesShader;
