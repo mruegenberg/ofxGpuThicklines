@@ -56,9 +56,15 @@ void ofxGpuThicklines::setup(vector<ofVec3f> positions,
                              "    vec2 v2 = normalize(p3-p2);\n"
                              "\n"
                              "    \n" // determine the normal of each of the 3 segments (previous, current, next)
-                             "    vec2 n0 = vec2(-v0.y, v0.x);\n"
+                                      // the mixing and factors are to catch case where p0==p1 or p2==p1 and thus the corresponding normals are not defined.
                              "    vec2 n1 = vec2(-v1.y, v1.x);\n"
-                             "    vec2 n2 = vec2(-v2.y, v2.x);\n"
+                             "    float p_n0 = dot(v0,v0) < 0.1 ? 0.0 : 1.0;\n"
+                             "    vec2 n0 = mix(n1, vec2(-v0.y, v0.x), p_n0);\n"
+                             "    float p_n2 = dot(v2,v2) < 0.1 ? 0.0 : 1.0;\n"
+                             "    vec2 n2 = mix(n1, vec2(-v2.y, v2.x), 1.0 - p_n2);\n"
+                             // FIXME: this somehow doesn't work. we still get flickering unless we set all normals to be the same
+                             "    n0 = n1;"
+                             "    n2 = n1;"
                              "\n"
                              "    \n" // determine miter lines by averaging the normals of the 2 segments
                              "    vec2 miter_a = normalize(n0 + n1);\n" // miter at start of current segment
@@ -74,10 +80,10 @@ void ofxGpuThicklines::setup(vector<ofVec3f> positions,
                              "	      length_a = thicknessA;\n"
                              "\n"
                              "        float f = sign(dot(v0,n1));\n"
-                             "        float g = f > 0 ? 0 : 1;\n"
+                             "        float g = 1.0 - abs(f);\n"
                              "\n"
                              "        fTexCoordVarying = texCoord1;\n"
-                             "        flocalTexCoord = vec2(0, g); // TODO: use tex coord from vertices\n"
+                             "        flocalTexCoord = vec2(0, g);\n"
                              "        fColorVarying = colorVarying[1];\n"
                              "        gl_Position = vec4( (p1 + thicknessA * mix(n0,n1,g) * f) / WIN_SCALE, 0.0, 1.0 );\n"
                              "        EmitVertex();\n"
