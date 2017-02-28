@@ -76,7 +76,7 @@ void testApp::draw(){
 }
 
 void testApp::exit() {
-    m_curves.exit();
+    m_cam.disableMouseInput(); // prevents segfault
 }
     
 

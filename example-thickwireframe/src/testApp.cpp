@@ -51,9 +51,10 @@ void testApp::update(){
 
 //--------------------------------------------------------------
 void testApp::draw(){
-    ofBackground(0);
+    ofBackgroundGradient(ofColor(60), ofColor(10));
     ofEnableAlphaBlending();
-    ofEnableBlendMode(OF_BLENDMODE_SCREEN); {        
+    ofEnableBlendMode(OF_BLENDMODE_SCREEN);
+    {
         m_cam.begin();
         {
             ofSetColor(255,50,10,255);
@@ -69,12 +70,13 @@ void testApp::draw(){
             // sphere.drawWireframe();
         }
         m_cam.end();
-    } ofDisableBlendMode();
+    }
+    ofDisableBlendMode();
     ofDisableAlphaBlending();
 }
 
 void testApp::exit() {
-    m_curves.exit();
+    m_cam.disableMouseInput(); // prevents segfault
 }
     
 

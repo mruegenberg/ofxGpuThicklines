@@ -238,7 +238,6 @@ void ofxGpuThicklines::setup(ofMesh &mesh, string customFragShader, bool onlylin
                 }
             }
             else {
-                ofLogNotice("only");
                 for(int i0=0; i0<(int)mesh.getIndices().size() - 1; i0+=2) {
                     size_t i = mesh.getIndex(i0);
                     size_t j = mesh.getIndex(i0 + 1);
@@ -375,12 +374,6 @@ void ofxGpuThicklines::reset(vector<ofVec3f> positions,
         m_curvesVbo.setAttributeData(m_curvesShader.getAttributeLocation("texcoord"),
                                      &m_texcoords[0].x, 2, m_texcoords.size(), GL_DYNAMIC_DRAW);
     }
-}
-
-void ofxGpuThicklines::exit() {
-    ofLogNotice("exit");
-    m_curvesVbo.clear();
-    m_curvesShader.unload();
 }
 
 
