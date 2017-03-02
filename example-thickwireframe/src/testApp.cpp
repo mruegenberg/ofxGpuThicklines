@@ -25,10 +25,16 @@ void testApp::setup(){
                          "\n"
                          "out vec4 outputColor;\n"
                          "\n"
+                        "float sawtooth(float x) { return (x - floor(x)); }"
                          "void main()\n"
                          "{\n"
                          "    float m = (sin(time * 1.5 + 64332.23 * rand( vec2(float(edgeID),44322.123) )) * 0.5 + 0.5);\n"
-                         "    outputColor = globalColor * fColorVarying * m;\n"
+                              " m = sawtooth(time * 0.5); "
+                         " float sparksize = 0.1;"
+                         " float f = (flocalTexCoord.x - (m - sparksize)) / (sparksize);"
+                         " float n = clamp(f > 1 ? 0 : f, 0, 1);"
+                         "float movingspark = n;"
+                         "    outputColor = globalColor * fColorVarying * movingspark;\n"
                          "}\n");
                          
     m_curves.setup(sphere, fragShader, true);

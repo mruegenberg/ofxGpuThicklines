@@ -14,6 +14,7 @@ void ofxGpuThicklines::setup(vector<ofVec3f> positions,
                              "uniform int perspective;\n" // whether to use perspective for determining line thickness
                              "#define MITER_LIMIT 0.75\n" // "uniform float	MITER_LIMIT;\n" // 1.0: always miter, -1.0: never miter, 0.75: default
                              "uniform vec2	viewportSize;\n"// the size of the viewport in pixels
+                             "uniform int toUV;"
                              "\n"
                              "in vec4 colorVarying[];\n"
                              "in vec2 texCoordVarying[];\n"
@@ -25,6 +26,7 @@ void ofxGpuThicklines::setup(vector<ofVec3f> positions,
                              "\n" // end of next segment
                              "out vec2 fTexCoordVarying;\n"
                              "out vec2 flocalTexCoord;\n"
+                             "flat out vec2 fedgeTexCoord;\n"
                              "out vec4 fColorVarying;\n"
                              "flat out int edgeID;\n"
                              "\n"
@@ -35,10 +37,15 @@ void ofxGpuThicklines::setup(vector<ofVec3f> positions,
                              "void main(void)\n"
                              "{\n"
                              "    \n" // get the four vertices passed to the shader:
-                             "    vec2 p0 = screen_space( gl_in[0].gl_Position );\n" // start of previous segment
-                             "    vec2 p1 = screen_space( gl_in[1].gl_Position );\n" // end of previous segment, start of current segment
-                             "    vec2 p2 = screen_space( gl_in[2].gl_Position );\n" // end of current segment, start of next segment
-                             "    vec2 p3 = screen_space( gl_in[3].gl_Position );\n" // end of next segment
+                             "    vec4 pos0 = gl_in[0].gl_Position;\n"
+                             "    vec4 pos1 = gl_in[1].gl_Position;\n"
+                             "    vec4 pos2 = gl_in[2].gl_Position;\n"
+                             "    vec4 pos3 = gl_in[3].gl_Position;\n"
+                             "\n"
+                             "    vec2 p0 = screen_space( pos0 );\n" // start of previous segment
+                             "    vec2 p1 = screen_space( pos1 );\n" // end of previous segment, start of current segment
+                             "    vec2 p2 = screen_space( pos2 );\n" // end of current segment, start of next segment
+                             "    vec2 p3 = screen_space( pos3 );\n" // end of next segment
                              "\n"
                              "    vec2 texCoord1 = texCoordVarying[1];\n"
                              "    vec2 texCoord2 = texCoordVarying[2];\n"
@@ -46,11 +53,12 @@ void ofxGpuThicklines::setup(vector<ofVec3f> positions,
                              // Cantor's pairing function.
                              // might be possible to find a tighter mapping when assuming that the two vertex
                              // ids are never equal.
-                             "    edgeID = ((vertexID[1] + vertexID[2]) * (vertexID[1] + vertexID[2] + 1) / 2 + vertexID[2]);\n" 
+                             "    edgeID = ((vertexID[1] + vertexID[2]) * (vertexID[1] + vertexID[2] + 1) / 2 + vertexID[2]);\n"
+                             "    fedgeTexCoord = (texCoord1 + texCoord2) / 2.0;\n"
                              "\n"
                              // we estimate the scaling of the width by perspective is `perspective` == 1
-                             "    float thicknessA = thickness * (bool(perspective) ? (500.0 / gl_in[1].gl_Position.w) : 1.0);\n" 
-                             "    float thicknessB = thickness * (bool(perspective) ? (500.0 / gl_in[2].gl_Position.w) : 1.0);\n"
+                             "    float thicknessA = thickness * (bool(perspective) ? (500.0 / pos1.w) : 1.0);\n" 
+                             "    float thicknessB = thickness * (bool(perspective) ? (500.0 / pos2.w) : 1.0);\n"
                              "\n"
                              "    \n" // determine the direction of each of the 3 segments (previous, current, next)
                              "    vec2 v0 = normalize(p1-p0);\n"
@@ -207,7 +215,7 @@ void ofxGpuThicklines::setup(ofMesh &mesh, string customFragShader, bool onlylin
     }
     else {
         for(size_t i=0; i<mesh.getNumVertices(); ++i)
-            colors.push_back(ofVec4f(1,1,1,0.3));
+            colors.push_back(ofVec4f(1,1,1,1.0));
     }
     // ofLogNotice("ofxGpuThicklines", "setup mesh with %lu vertices, %lu colors (resolved to %lu)",
     // mesh.getNumVertices(), mesh.getNumColors(), colors.size());
