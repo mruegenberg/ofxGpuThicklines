@@ -25,10 +25,9 @@ public:
                vector< vector<size_t> > curves, string customFragShader = "");
 
     // builds a thick wireframe from a mesh
-    // this modifies the passed mesh by merging duplicate vertices, since there are drawing errors otherwise.
     // `onlylines`: interpret the mesh as consisting only of lines instead of triangles,
     // ie two adjacent indices form a line.
-    void setup(ofMesh &mesh, string customFragShader = "", bool onlylines=false);
+    void setup(const ofMesh &mesh, string customFragShader = "", bool onlylines=false);
     
     void reset(vector<ofVec3f> positions, vector<ofVec4f> colors, vector<ofVec2f> texcoords, vector< vector<size_t> > curves);
 

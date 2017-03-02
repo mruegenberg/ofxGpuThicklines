@@ -205,8 +205,7 @@ void ofxGpuThicklines::setup(vector<ofVec3f> positions,
     setup(positions, colors, texcoords, curves, customFragShader);
 }
 
-void ofxGpuThicklines::setup(ofMesh &mesh, string customFragShader, bool onlylines) {
-    mesh.mergeDuplicateVertices();
+void ofxGpuThicklines::setup(const ofMesh &mesh, string customFragShader, bool onlylines) {
     vector<ofVec4f> colors; colors.reserve(mesh.getNumVertices());
     if(mesh.getNumColors() == mesh.getNumVertices()) {
         for(const ofFloatColor &c : mesh.getColors()) {
