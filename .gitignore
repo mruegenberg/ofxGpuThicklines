@@ -33,6 +33,11 @@ xcuserdata
 *.layout
 *.cbTemp
 
+#QtCreator
+*.qbs
+*.qbs*
+build-*
+
 #Visual Studio
 *.sdf
 *.opensdf

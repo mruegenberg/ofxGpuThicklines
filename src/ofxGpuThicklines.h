@@ -19,9 +19,9 @@ public:
     ///     When this is a nonempty string, this is used instead of the default fragment shader.
     //      Use `prepareDraw()` before calling `draw()` to set uniforms or attributes on the shader.
     ///     The thickwireframe example shows how to use this.
-    void setup(vector<ofVec3f> positions, vector<ofVec4f> colors,
+    void setup(vector<glm::vec3> positions, vector<glm::vec4> colors,
                vector< vector<size_t> > curves, string customFragShader = "");
-    void setup(vector<ofVec3f> positions, vector<ofVec4f> colors, vector<ofVec2f> texcoords,
+    void setup(vector<glm::vec3> positions, vector<glm::vec4> colors, vector<glm::vec2> texcoords,
                vector< vector<size_t> > curves, string customFragShader = "");
 
     // builds a thick wireframe from a mesh
@@ -29,10 +29,10 @@ public:
     // ie two adjacent indices form a line.
     void setup(const ofMesh &mesh, string customFragShader = "", bool onlylines=false);
     
-    void reset(vector<ofVec3f> positions, vector<ofVec4f> colors, vector<ofVec2f> texcoords, vector< vector<size_t> > curves);
+    void reset(vector<glm::vec3> positions, vector<glm::vec4> colors, vector<glm::vec2> texcoords, vector< vector<size_t> > curves);
 
-    const vector<ofVec3f> &positions() const { return m_positions; }
-    const vector<ofVec4f> &colors() const { return m_colors; }
+    const vector<glm::vec3> &positions() const { return m_positions; }
+    const vector<glm::vec4> &colors() const { return m_colors; }
 
     size_t numPositions() { return m_positions.size(); }
 
@@ -40,9 +40,9 @@ public:
     void endUpdates();
 
     // always wrap all update calls with  `beginUpdates()` and `endUpdates()`
-    void updatePosition(size_t i, ofVec3f v) { m_positions[i] = v; }
-    void updateColor(size_t i, ofVec4f o) { m_colors[i] = o; }
-    void updateVertex(size_t i, ofVec3f v, ofVec4f o) {
+    void updatePosition(size_t i, glm::vec3 v) { m_positions[i] = v; }
+    void updateColor(size_t i, glm::vec4 o) { m_colors[i] = o; }
+    void updateVertex(size_t i, glm::vec3 v, glm::vec4 o) {
         updatePosition(i, v);
         updateColor(i, o);
     }
@@ -51,15 +51,15 @@ public:
     size_t numIndices() { return m_indexCount; }
 
     ofShader &prepareDraw(); // call this once before `draw()` if using a custom fragment shader. Do not call it multiple times.
-    void draw(float lineWidth = 3, bool perspective = true, ofVec2f viewportSize = ofVec2f(0,0)); // if viewportSize == 0, (ofGetWidth(), ofGetHeight()) is used.
+    void draw(float lineWidth = 3, bool perspective = true, glm::vec2 viewportSize = glm::vec2(0,0)); // if viewportSize == 0, (ofGetWidth(), ofGetHeight()) is used.
 
 protected:
     ofShader m_curvesShader;
     ofVbo m_curvesVbo;
 
-    vector<ofVec3f> m_positions;
-    vector<ofVec4f> m_colors;
-    vector<ofVec2f> m_texcoords;
+    vector<glm::vec3> m_positions;
+    vector<glm::vec4> m_colors;
+    vector<glm::vec2> m_texcoords;
 
     vector< vector<size_t> > m_structure;
     size_t m_indexCount;

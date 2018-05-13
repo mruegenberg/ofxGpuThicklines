@@ -1,9 +1,9 @@
 #include "ofxGpuThicklines.h"
 #include <cassert>
 
-void ofxGpuThicklines::setup(vector<ofVec3f> positions,
-                             vector<ofVec4f> colors,
-                             vector<ofVec2f> texcoords,
+void ofxGpuThicklines::setup(vector<glm::vec3> positions,
+                             vector<glm::vec4> colors,
+                             vector<glm::vec2> texcoords,
                              vector< vector<size_t> > curves,
                              string customFragShader) {
     // curve shader
@@ -197,24 +197,24 @@ void ofxGpuThicklines::setup(vector<ofVec3f> positions,
     reset(positions, colors, texcoords, curves);
 }
 
-void ofxGpuThicklines::setup(vector<ofVec3f> positions,
-                             vector<ofVec4f> colors,
+void ofxGpuThicklines::setup(vector<glm::vec3> positions,
+                             vector<glm::vec4> colors,
                              vector< vector<size_t> > curves,
                              string customFragShader) {
-    vector<ofVec2f> texcoords; // intentionally empty
+    vector<glm::vec2> texcoords; // intentionally empty
     setup(positions, colors, texcoords, curves, customFragShader);
 }
 
 void ofxGpuThicklines::setup(const ofMesh &mesh, string customFragShader, bool onlylines) {
-    vector<ofVec4f> colors; colors.reserve(mesh.getNumVertices());
+    vector<glm::vec4> colors; colors.reserve(mesh.getNumVertices());
     if(mesh.getNumColors() == mesh.getNumVertices()) {
         for(const ofFloatColor &c : mesh.getColors()) {
-            colors.push_back(ofVec4f(c.r,c.g,c.b,c.a));
+            colors.push_back(glm::vec4(c.r,c.g,c.b,c.a));
         }
     }
     else {
         for(size_t i=0; i<mesh.getNumVertices(); ++i)
-            colors.push_back(ofVec4f(1,1,1,1.0));
+            colors.push_back(glm::vec4(1,1,1,1.0));
     }
     // ofLogNotice("ofxGpuThicklines", "setup mesh with %lu vertices, %lu colors (resolved to %lu)",
     // mesh.getNumVertices(), mesh.getNumColors(), colors.size());
@@ -323,9 +323,9 @@ void ofxGpuThicklines::setup(const ofMesh &mesh, string customFragShader, bool o
     setup(mesh.getVertices(), colors, mesh.getTexCoords(), curves, customFragShader);
 }
 
-void ofxGpuThicklines::reset(vector<ofVec3f> positions,
-                             vector<ofVec4f> colors,
-                             vector<ofVec2f> texcoords,
+void ofxGpuThicklines::reset(vector<glm::vec3> positions,
+                             vector<glm::vec4> colors,
+                             vector<glm::vec2> texcoords,
                              vector< vector<size_t> > curves) {
     m_shaderBegun = false;
     
@@ -403,12 +403,12 @@ ofShader &ofxGpuThicklines::prepareDraw() {
     return m_curvesShader;
 }
 
-void ofxGpuThicklines::draw(float lineWidth, bool perspective, ofVec2f viewportSize) {
+void ofxGpuThicklines::draw(float lineWidth, bool perspective, glm::vec2 viewportSize) {
     ofFill();
     if(! m_shaderBegun)
         m_curvesShader.begin();
     if(viewportSize.x == 0)
-        viewportSize = ofVec2f(ofGetWidth(), ofGetHeight());
+        viewportSize = glm::vec2(ofGetWidth(), ofGetHeight());
     m_curvesShader.setUniform2f("viewportSize", viewportSize);
     m_curvesShader.setUniform1i("perspective", (int)perspective);
     m_curvesShader.setUniform1f("thickness", lineWidth);
