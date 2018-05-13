@@ -1,7 +1,7 @@
-#include "testApp.h"
+#include "ofApp.h"
 
 //--------------------------------------------------------------
-void testApp::setup(){
+void ofApp::setup(){
     ofEnableAntiAliasing();
     ofEnableSmoothing();
     ofSetVerticalSync(false);
@@ -9,10 +9,10 @@ void testApp::setup(){
     m_h = ofGetHeight();
     float t = ofGetElapsedTimef();
     
-    vector<ofVec3f> positions; vector<ofVec4f> colors;
+    vector<glm::vec3> positions; vector<glm::vec4> colors;
     const int c = 15;
     for(int i=0; i<c; ++i) {
-        positions.push_back(ofVec3f(ofRandom(m_w), ofRandom(m_h), ofRandom(-150,150)));
+        positions.push_back(glm::vec3(ofRandom(m_w), ofRandom(m_h), ofRandom(-150,150)));
         colors.push_back(ofVec4f(1.0,1.0,1.0,ofNoise(i*0.01 + t * 0.3)));
     }
     vector< vector<size_t> > curves;
@@ -29,8 +29,8 @@ void testApp::setup(){
         curves.push_back(curve);
     }
 
-    positions.push_back(ofVec3f(mouseX, mouseY, 0));
-    colors.push_back(ofVec4f(1.0,1.0,1.0,1.0));
+    positions.push_back(glm::vec3(mouseX, mouseY, 0));
+    colors.push_back(glm::vec4(1.0,1.0,1.0,1.0));
     m_mouseIdx = positions.size() - 1;
     for(int i=0; i<c; ++i) {
         for(int j=i+1; j<c; ++j) {
@@ -45,9 +45,9 @@ void testApp::setup(){
 }
 
 //--------------------------------------------------------------
-void testApp::update(){
+void ofApp::update(){
     m_curves.beginUpdates();
-    m_curves.updatePosition(m_mouseIdx, ofVec3f(mouseX, mouseY, 0));
+    m_curves.updatePosition(m_mouseIdx, glm::vec3(mouseX, mouseY, 0));
     m_curves.endUpdates();
 
     // FPS
@@ -59,7 +59,7 @@ void testApp::update(){
 }
 
 //--------------------------------------------------------------
-void testApp::draw(){
+void ofApp::draw(){
     ofBackground(0);
     ofSetColor(255,50,10,255);
     ofEnableBlendMode(OF_BLENDMODE_SCREEN); {        
@@ -75,52 +75,52 @@ void testApp::draw(){
     } ofDisableBlendMode();
 }
 
-void testApp::exit() {
+void ofApp::exit() {
     m_cam.disableMouseInput(); // prevents segfault
 }
     
 
 //--------------------------------------------------------------
-void testApp::keyPressed(int key){
+void ofApp::keyPressed(int key){
 
 }
 
 //--------------------------------------------------------------
-void testApp::keyReleased(int key){
+void ofApp::keyReleased(int key){
 
 }
 
 //--------------------------------------------------------------
-void testApp::mouseMoved(int x, int y){
+void ofApp::mouseMoved(int x, int y){
 
 }
 
 //--------------------------------------------------------------
-void testApp::mouseDragged(int x, int y, int button){
+void ofApp::mouseDragged(int x, int y, int button){
 
 }
 
 //--------------------------------------------------------------
-void testApp::mousePressed(int x, int y, int button){
+void ofApp::mousePressed(int x, int y, int button){
 
 }
 
 //--------------------------------------------------------------
-void testApp::mouseReleased(int x, int y, int button){
+void ofApp::mouseReleased(int x, int y, int button){
 
 }
 
 //--------------------------------------------------------------
-void testApp::windowResized(int w, int h){
+void ofApp::windowResized(int w, int h){
 
 }
 
 //--------------------------------------------------------------
-void testApp::gotMessage(ofMessage msg){
+void ofApp::gotMessage(ofMessage msg){
 
 }
 
 //--------------------------------------------------------------
-void testApp::dragEvent(ofDragInfo dragInfo){ 
+void ofApp::dragEvent(ofDragInfo dragInfo){ 
 
 }
